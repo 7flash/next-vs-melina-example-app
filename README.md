@@ -1,181 +1,160 @@
-# Agent Orchestrator
+# Next.js vs Melina.js — Same App, Side by Side
 
-A premium dark-themed dashboard for managing AI agents — built with [Melina.js](https://github.com/nicholasgriffintn/melina.js), a lightweight Bun-native web framework.
+Both folders contain the **exact same application** — an Agent Orchestrator dashboard with 5 AI agents, chat, tabs, search, and a dark theme. One is built with Next.js + React + shadcn/ui. The other with [Melina.js](https://github.com/nicholasgriffintn/melina.js).
 
-![Agent Orchestrator](https://img.shields.io/badge/Framework-Melina.js-10b981?style=flat-square) ![Runtime](https://img.shields.io/badge/Runtime-Bun-f472b6?style=flat-square) ![Dependencies](https://img.shields.io/badge/Dependencies-2-blue?style=flat-square)
-
-## Features
-
-- 🤖 **5 Agent Types** — DataPipeline, SentimentBot, DeployBot, ContentWriter, SecurityScanner
-- 💬 **Real-time Chat** — Message orchestrator with auto-responses and per-agent history
-- 📊 **Multi-tab Detail View** — Chat, Memory, Logs, Source Code, Jobs
-- 🔍 **Agent Search** — Instant filtering across all agents
-- 🎨 **Premium Dark Theme** — Glassmorphic UI with green accent colors and smooth animations
-- ⚡ **Zero React on Client** — Pure vanilla JS with Melina's VDOM runtime
+Browse them yourself: [`next/`](next/) and [`melina/`](melina/).
 
 ---
 
-## Quick Start
+## The Numbers
 
-```bash
-bun install
-bun run server.ts
-```
-
-Open [http://localhost:3000](http://localhost:3000)
+| | Next.js | Melina.js |
+|---|---|---|
+| **Dependencies** | [49 packages](next/package.json#L11-L71) | [2 packages](melina/package.json#L5-L8) |
+| **UI component files** | [57 files](next/components/ui/) | 0 |
+| **Feature components** | [7 files](next/components/) (584 lines) | [1 file](melina/app/page.client.tsx) (558 lines) |
+| **Config files** | 6 (next.config, tailwind, postcss, tsconfig, components.json, eslint) | [1](melina/tsconfig.json) (tsconfig) |
+| **Total source files** | 79 | 10 |
+| **Server setup** | [4 npm scripts](next/package.json#L5-L9) + next.config + postcss.config | [8 lines](melina/server.ts) |
 
 ---
 
-## Next.js vs Melina.js — Side by Side
+## 1. Server — 4 Config Files vs 8 Lines
 
-This app was originally built with Next.js + React + Tailwind + shadcn/ui, then rewritten in Melina.js for comparison. Here's what changed.
+**Next.js** requires a config file, PostCSS config, Tailwind config, and npm scripts to start:
 
-### Project Structure
-
-```
-NEXT.JS (81 files)                       MELINA.JS (12 files)
-─────────────────                        ────────────────────
-app/                                     app/
-├── globals.css                          ├── globals.css        ← vanilla CSS
-├── layout.tsx                           ├── layout.tsx         ← HTML shell
-├── page.tsx                             ├── page.tsx           ← SSR (full page)
-│                                        └── page.client.tsx    ← interactivity
-components/
-├── agent-sidebar.tsx    (100 lines)
-├── agent-detail.tsx     (150 lines)
-├── chat-panel.tsx       (113 lines)
-├── agent-jobs.tsx       (77 lines)
-├── agent-logs.tsx       (51 lines)
-├── agent-memory.tsx     (40 lines)
-├── agent-source.tsx     (47 lines)
-├── theme-provider.tsx
-└── ui/                  (65+ files)
-    ├── avatar.tsx
-    ├── badge.tsx
-    ├── button.tsx
-    ├── card.tsx
-    ├── input.tsx
-    ├── scroll-area.tsx
-    ├── separator.tsx
-    ├── sidebar.tsx
-    ├── tabs.tsx
-    ├── tooltip.tsx
-    └── ... 55+ more
-
-hooks/
-├── use-mobile.ts
-lib/
-├── utils.ts             ← cn() helper
-styles/
-├── globals.css          ← tailwind config
-components.json          ← shadcn config
-next.config.mjs
-postcss.config.mjs
-tailwind.config.ts
+```ts
+// next/package.json — L5-L9
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint ."
+}
 ```
 
-### Dependencies
-
-```
-NEXT.JS (~30 packages)                  MELINA.JS (2 packages)
-──────────────────────                   ──────────────────────
-next                                     melina
-react, react-dom                         xstate
-@radix-ui/react-avatar
-@radix-ui/react-scroll-area
-@radix-ui/react-separator
-@radix-ui/react-slot
-@radix-ui/react-tabs
-@radix-ui/react-tooltip
-class-variance-authority
-clsx
-lucide-react
-tailwind-merge
-tailwindcss
-autoprefixer
-postcss
-tw-animate-css
-zod
-typescript, @types/node, @types/react
-```
-
-### Numbers
-
-| Metric | Next.js | Melina.js | Δ |
-|---|---|---|---|
-| **Source files** | 81 | 12 | **-85%** |
-| **Dependencies** | ~30 | 2 | **-93%** |
-| **UI component files** | 65+ | 0 | **-100%** |
-| **Application files** | 10 | 5 | **-50%** |
-| **Client payload** | ~350KB+ (React+framework) | ~124KB (HTML+CSS+JS) | **-65%** |
-| **Config files** | 6 (next, tailwind, postcss, tsconfig, components.json, .eslintrc) | 1 (tsconfig) | **-83%** |
-| **Build tool** | Webpack/Turbopack | Bun.build | — |
-| **Runtime** | Node.js | Bun | — |
-
-### Developer Experience
-
-#### Routing & Server Setup
-
-```tsx
-// ─── NEXT.JS ──────────────────────
-// next.config.mjs (required)
+```ts
+// next/next.config.mjs
 const nextConfig = {};
 export default nextConfig;
 
-// package.json scripts required:
-// "dev": "next dev --turbopack -p 3001"
-// "build": "next build"
-// "start": "next start"
+// next/postcss.config.mjs
+export default { plugins: { "@tailwindcss/postcss": {} } };
 ```
 
-```tsx
-// ─── MELINA.JS ────────────────────
-// server.ts — the entire server
+**Melina.js** — the entire server is [8 lines](melina/server.ts):
+
+```ts
+// melina/server.ts — the entire file
 import { start } from 'melina';
 start();
 ```
 
-#### Components — The Tab System
+Run it: `bun run server.ts`. That's it. No config files, no build step, no plugins.
 
-In Next.js, you need Radix UI primitives + shadcn wrapper + Tailwind utilities:
+---
 
-```tsx
-// ─── NEXT.JS ──────────────────────
-// First, install: npx shadcn@latest add tabs
-// This generates ui/tabs.tsx wrapping @radix-ui/react-tabs
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+## 2. Dependencies — 49 vs 2
 
-function AgentDetail({ agent }: { agent: Agent }) {
-  const [activeTab, setActiveTab] = useState("chat");
-  return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList>
-        <TabsTrigger value="chat">Chat</TabsTrigger>
-        <TabsTrigger value="memory">Memory</TabsTrigger>
-        <TabsTrigger value="logs">Logs</TabsTrigger>
-      </TabsList>
-      <TabsContent value="chat"><ChatPanel agent={agent} /></TabsContent>
-      <TabsContent value="memory"><AgentMemory agent={agent} /></TabsContent>
-      <TabsContent value="logs"><AgentLogs agent={agent} /></TabsContent>
-    </Tabs>
-  );
+**Next.js** pulls in [49 packages](next/package.json#L11-L71):
+
+```
+29 × @radix-ui/* primitives    ← UI primitives for every element
+     lucide-react              ← icon library
+     class-variance-authority  ← variant helper
+     clsx + tailwind-merge     ← className merging
+     react + react-dom         ← framework
+     next + next-themes        ← meta-framework
+     tailwindcss + postcss     ← styling
+     recharts, sonner, vaul    ← charts, toasts, drawers
+     react-hook-form + zod     ← form validation
+     ... and more
+```
+
+**Melina.js** has [2 dependencies](melina/package.json):
+
+```json
+{
+  "dependencies": {
+    "melina": "latest",
+    "xstate": "^5"
+  }
 }
 ```
 
-In Melina, tabs are just HTML buttons + event delegation:
+---
+
+## 3. Component Architecture — 7 Files vs 1
+
+In **Next.js**, each UI section is a separate React component with its own imports, hooks, and state:
+
+```
+next/components/
+├── agent-sidebar.tsx    109 lines — useState, ScrollArea, Search icon, cn()
+├── agent-detail.tsx     157 lines — Tabs, TabsList, TabsTrigger, TabsContent, Badge, Button...
+├── chat-panel.tsx       126 lines — useState, useRef, useEffect, ScrollArea, Button, Send icon
+├── agent-jobs.tsx        82 lines — Badge, Clock icon, Progress bar
+├── agent-logs.tsx        55 lines — Badge, ScrollArea
+├── agent-memory.tsx      43 lines — Database icon, Clock icon
+└── agent-source.tsx      53 lines — Button, Copy icon, Code2 icon
+```
+
+Each one starts with a wall of imports. For example, [agent-detail.tsx](next/components/agent-detail.tsx#L1-L21) needs **12 imports** just to render:
 
 ```tsx
-// ─── MELINA.JS ────────────────────
-// No install needed. No component library. Just DOM.
+// next/components/agent-detail.tsx — L1-L21
+"use client"
 
-// Server: render tab buttons with data attributes
-<div id="tab-triggers">
-  <button data-tab="chat" className="border-b-2 border-primary">Chat</button>
-  <button data-tab="memory" className="border-transparent">Memory</button>
-  <button data-tab="logs" className="border-transparent">Logs</button>
-</div>
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { type Agent } from "@/lib/agents-data"
+import { ChatPanel } from "@/components/chat-panel"
+import { AgentMemory } from "@/components/agent-memory"
+import { AgentLogs } from "@/components/agent-logs"
+import { AgentSource } from "@/components/agent-source"
+import { AgentJobs } from "@/components/agent-jobs"
+import { MessageSquare, Database, FileText, Code2, Layers, ExternalLink, Send as TelegramIcon } from "lucide-react"
+```
 
-// Client: event delegation in mount()
+In **Melina.js**, all client interactivity lives in [one file](melina/app/page.client.tsx) with **1 import**:
+
+```tsx
+// melina/app/page.client.tsx — L1
+import { render } from 'melina/client';
+```
+
+---
+
+## 4. Tabs — Radix Primitives vs HTML Buttons
+
+**Next.js** uses `@radix-ui/react-tabs` → wrapped in a [shadcn component](next/components/ui/tabs.tsx) → consumed in [agent-detail.tsx](next/components/agent-detail.tsx#L92-L136). Each trigger repeats the same 3-line className string:
+
+```tsx
+// next/components/agent-detail.tsx — L92-L136
+<Tabs defaultValue="chat" className="flex flex-1 flex-col overflow-hidden">
+  <TabsList className="h-10 bg-transparent p-0 gap-0">
+    <TabsTrigger
+      value="chat"
+      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary
+                 data-[state=active]:bg-transparent data-[state=active]:shadow-none gap-1.5 px-3"
+    >
+      <MessageSquare className="size-3.5" />
+      Chat
+    </TabsTrigger>
+    {/* ... repeat 4 more times with identical className */}
+  </TabsList>
+  <TabsContent value="chat"><ChatPanel agent={agent} /></TabsContent>
+  <TabsContent value="memory"><AgentMemory memory={agent.memory} /></TabsContent>
+  {/* ... */}
+</Tabs>
+```
+
+**Melina.js** — tabs are plain `<button>` elements with `data-tab` attributes. The tab switching is [6 lines of event delegation](melina/app/page.client.tsx#L480-L491):
+
+```tsx
+// melina/app/page.client.tsx — L480-L491
 const tabTriggers = document.getElementById('tab-triggers');
 tabTriggers?.addEventListener('click', (e) => {
   const btn = (e.target as HTMLElement).closest('[data-tab]');
@@ -183,57 +162,36 @@ tabTriggers?.addEventListener('click', (e) => {
 });
 ```
 
-#### Components — Chat Messages
+No Radix dependency. No `TabsList` wrapper. No `data-[state=active]` selectors. Just DOM.
+
+---
+
+## 5. Chat — 3 Hooks + 5 Imports vs Plain Functions
+
+**Next.js** [chat-panel.tsx](next/components/chat-panel.tsx) needs `useState`, `useRef`, `useEffect`, `ScrollArea`, `Button`, `Send`, `Bot`, `User`, and the `cn` utility:
 
 ```tsx
-// ─── NEXT.JS ──────────────────────
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Send, User, Bot } from "lucide-react"
-
-function ChatPanel({ agent }: { agent: Agent }) {
-  const [messages, setMessages] = useState(agent.messages);
-  const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+// next/components/chat-panel.tsx — L49-L62
+export function ChatPanel({ agent }: { agent: Agent }) {
+  const [input, setInput] = useState("")
+  const [messages, setMessages] = useState<Message[]>(agent.messages)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages]);
+    setMessages(agent.messages)
+  }, [agent.id, agent.messages])
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages(prev => [...prev, { role: 'user', content: input }]);
-    setInput("");
-  };
-
-  return (
-    <div className="flex flex-col h-full">
-      <ScrollArea ref={scrollRef}>
-        {messages.map(msg => (
-          <div key={msg.id} className={cn("flex gap-3", msg.role === 'user' && "flex-row-reverse")}>
-            <Avatar><AvatarFallback>{msg.role === 'user' ? <User /> : <Bot />}</AvatarFallback></Avatar>
-            <div className={cn("rounded-xl px-4 py-2", msg.role === 'user' ? "bg-primary" : "bg-secondary")}>
-              {msg.content}
-            </div>
-          </div>
-        ))}
-      </ScrollArea>
-      <form onSubmit={handleSend}>
-        <Input value={input} onChange={e => setInput(e.target.value)} />
-        <Button type="submit"><Send /></Button>
-      </form>
-    </div>
-  );
-}
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages])
 ```
 
-```tsx
-// ─── MELINA.JS ────────────────────
-// No imports. No hooks. No component library.
-// Just render() + DOM targeting.
+**Melina.js** — a [plain function](melina/app/page.client.tsx#L195-L238) that calls `render()` and scrolls. No hooks, no refs, no effects:
 
+```tsx
+// melina/app/page.client.tsx — L195-L225
 function renderChat() {
   const container = document.getElementById('messages-container');
   const msgs = chatMessages.get(selectedId) || [];
@@ -241,78 +199,99 @@ function renderChat() {
   render(
     <>{msgs.map(msg => (
       <div className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-        <div className={`size-7 rounded-full flex items-center justify-center
-          ${msg.role === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
-          {msg.role === 'user' ? iconUser() : iconBot()}
-        </div>
-        <div className={`max-w-[80%] rounded-xl px-3.5 py-2.5
-          ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-          <p className="text-sm">{msg.content}</p>
-        </div>
+        {/* ... message content ... */}
       </div>
     ))}</>,
     container
   );
 
-  // Auto-scroll — no useEffect/useRef needed
+  // Auto-scroll — one line, no useEffect/useRef
   requestAnimationFrame(() => {
     document.getElementById('chat-scroll').scrollTop = 999999;
   });
 }
-
-// Submit handler in mount() — no useState
-chatForm?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const value = chatInput.value.trim();
-  if (!value) return;
-  chatMessages.get(selectedId).push({ role: 'user', content: value });
-  chatInput.value = '';
-  renderChat();
-});
 ```
-
-### Performance Characteristics
-
-| Aspect | Next.js | Melina.js |
-|---|---|---|
-| **SSR** | React renderToString (full VDOM tree) | melina/client VDOM (lightweight) |
-| **Client hydration** | Full React tree reconciliation | Zero hydration — mount scripts attach to existing DOM |
-| **Client framework** | React 19 (~45KB gzipped) | None — vanilla JS with `render()` helper |
-| **Navigation** | Client-side router (full VDOM diff) | View Transition API + body swap |
-| **State persistence** | Lost on navigation | Fiber tree survives partial navigations |
-| **Bundler** | Webpack/Turbopack (complex config) | Bun.build (zero config) |
-| **Cold start** | ~2-3s (Node + webpack) | ~200ms (Bun native) |
-
-### Key Architectural Differences
-
-**Next.js** ships the entire React runtime to the client. Every component, hook, context provider, and state manager runs in the browser. The `ui/` folder alone contains 65+ wrapper components around Radix UI primitives.
-
-**Melina.js** renders everything on the server, then sends plain HTML. The client script (`page.client.tsx`) uses event delegation and targeted `render()` calls to update only the parts of the DOM that change. No React, no virtual DOM diffing on the client, no component tree reconciliation.
-
-The result: **same UI, same interactivity, ~65% less JavaScript shipped to the browser.**
 
 ---
 
-## Architecture
+## 6. The Hidden Cost — 57 UI Component Files
+
+The Next.js version has a [`components/ui/`](next/components/ui/) directory with **57 auto-generated files** from shadcn/ui. These are boilerplate wrappers around Radix primitives that the app needs just to use basic UI elements:
 
 ```
-┌─────────────────────────────────────────────────┐
-│                    Bun Runtime                    │
-│                                                   │
-│  server.ts ──► melina.start()                     │
-│       │                                           │
-│       ├── app/layout.tsx      (HTML shell)        │
-│       ├── app/page.tsx        (SSR render)         │
-│       ├── app/globals.css     (dark theme)        │
-│       └── app/page.client.tsx (client mount)      │
-│                                                   │
-│  lib/agents-data.ts           (shared data)       │
-└─────────────────────────────────────────────────┘
-         │                    │
-         ▼                    ▼
-    Server Output         Client Bundle
-    (36KB HTML)           (66KB JS + 24KB CSS)
+next/components/ui/
+├── accordion.tsx   ├── drawer.tsx        ├── popover.tsx      ├── sonner.tsx
+├── alert.tsx       ├── dropdown-menu.tsx ├── progress.tsx     ├── switch.tsx
+├── avatar.tsx      ├── form.tsx          ├── radio-group.tsx  ├── table.tsx
+├── badge.tsx       ├── hover-card.tsx    ├── resizable.tsx    ├── tabs.tsx
+├── breadcrumb.tsx  ├── input-otp.tsx     ├── scroll-area.tsx  ├── textarea.tsx
+├── button.tsx      ├── input.tsx         ├── select.tsx       ├── toast.tsx
+├── calendar.tsx    ├── label.tsx         ├── separator.tsx    ├── toaster.tsx
+├── card.tsx        ├── menubar.tsx       ├── sheet.tsx        ├── toggle.tsx
+├── carousel.tsx    ├── navigation-menu.tsx ├── sidebar.tsx    ├── toggle-group.tsx
+├── chart.tsx       ├── pagination.tsx    ├── skeleton.tsx     └── tooltip.tsx
+├── checkbox.tsx    ├── ... and more
+└── collapsible.tsx
 ```
+
+Of these 57 files, the app actually uses **5**: `badge.tsx`, `button.tsx`, `scroll-area.tsx`, `tabs.tsx`, `tooltip.tsx`. The rest are dead weight generated by `npx shadcn@latest init`.
+
+**Melina.js** has zero UI component files. A `<button>` is a `<button>`. A scroll area is `overflow-y-auto`. A badge is a `<span>` with classes.
+
+---
+
+## 7. Page Entry Point — "use client" vs SSR
+
+**Next.js** marks the entire page as `"use client"` ([page.tsx L1](next/app/page.tsx#L1)), meaning the full page is client-rendered with React:
+
+```tsx
+// next/app/page.tsx — 26 lines, fully client-side
+"use client"
+import { useState } from "react"
+// ...
+export default function Home() {
+  const [selectedId, setSelectedId] = useState(agents[0].id)
+  // ... renders everything client-side
+}
+```
+
+**Melina.js** renders the entire page on the server ([page.tsx](melina/app/page.tsx) — 515 lines of pure SSR), then a separate [page.client.tsx](melina/app/page.client.tsx) attaches interactivity to the existing HTML:
+
+```tsx
+// melina/app/page.client.tsx — L453
+export default function mount() {
+  // Attaches event listeners to server-rendered HTML
+  // No re-rendering of the page structure
+  agentList?.addEventListener('click', agentListHandler);
+  searchInput?.addEventListener('input', searchHandler);
+  tabTriggers?.addEventListener('click', tabHandler);
+  chatForm?.addEventListener('submit', chatSubmitHandler);
+  // ...
+  return () => { /* cleanup */ };
+}
+```
+
+The browser receives fully-rendered HTML immediately. JavaScript adds interactivity — it doesn't rebuild the page.
+
+---
+
+## Running Both
+
+### Next.js
+```bash
+cd next
+npm install    # installs 49 packages
+npm run dev    # starts dev server (requires Node.js)
+```
+
+### Melina.js
+```bash
+cd melina
+bun install    # installs 2 packages
+bun run server.ts
+```
+
+---
 
 ## License
 
